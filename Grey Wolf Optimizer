@@ -1,0 +1,136 @@
+import numpy as np
+
+def grey_wolf_optimizer(objective_func, bounds, num_wolves, max_iter):
+    """
+    Implements the Grey Wolf Optimizer (GWO) algorithm.
+
+    Args:
+        objective_func (function): The function to minimize. It must accept 
+                                   a 1D numpy array (the position/solution) 
+                                   and return a single float (the fitness).
+        bounds (list of tuples): Search space boundaries, e.g., 
+                                 [(min_dim1, max_dim1), (min_dim2, max_dim2)].
+        num_wolves (int): Number of grey wolves (population size).
+        max_iter (int): Maximum number of iterations.
+
+    Returns:
+        tuple: (best_fitness, best_position)
+    """
+    # Determine the dimension of the problem
+    dim = len(bounds)
+    
+    # Extract lower and upper bounds for initialization and boundary check
+    lower_bound = np.array([b[0] for b in bounds])
+    upper_bound = np.array([b[1] for b in bounds])
+
+    # 1. Initialization: Create a random initial population
+    positions = lower_bound + (upper_bound - lower_bound) * np.random.rand(num_wolves, dim)
+    
+    # 2. Initialize Alpha, Beta, and Delta (The three best solutions)
+    # Initialize fitness values to positive infinity (assuming minimization)
+    alpha_score = float('inf')
+    beta_score = float('inf')
+    delta_score = float('inf')
+    
+    # Initialize positions to zero arrays
+    alpha_pos = np.zeros(dim)
+    beta_pos = np.zeros(dim)
+    delta_pos = np.zeros(dim)
+
+    # Main optimization loop
+    for t in range(1, max_iter + 1):
+        
+        # Calculate fitness for the current population and update Alpha, Beta, Delta
+        for i in range(num_wolves):
+            # Apply boundary constraints before evaluation (optional, but good practice)
+            # Clip positions to ensure they are within bounds
+            positions[i] = np.clip(positions[i], lower_bound, upper_bound)
+            
+            fitness = objective_func(positions[i])
+            
+            # 3. Identify Hierarchy (Alpha, Beta, Delta)
+            if fitness < alpha_score:
+                # Delta becomes Beta, Beta becomes Alpha, current becomes Alpha
+                delta_score = beta_score
+                delta_pos = beta_pos.copy()
+                beta_score = alpha_score
+                beta_pos = alpha_pos.copy()
+                alpha_score = fitness
+                alpha_pos = positions[i].copy()
+            elif fitness < beta_score:
+                # Delta becomes Beta, current becomes Beta
+                delta_score = beta_score
+                delta_pos = beta_pos.copy()
+                beta_score = fitness
+                beta_pos = positions[i].copy()
+            elif fitness < delta_score:
+                # Current becomes Delta
+                delta_score = fitness
+                delta_pos = positions[i].copy()
+                
+        # Update the control parameter 'a', linearly decreasing from 2 to 0
+        a = 2 - t * (2 / max_iter)
+        
+        # 4. Hunting (Update positions of all wolves)
+        for i in range(num_wolves):
+            
+            # For each dimension
+            for j in range(dim):
+                
+                # Calculate A and C vectors for Alpha, Beta, and Delta
+                # Random vectors r1 and r2
+                r1_a, r2_a = np.random.rand(2)
+                r1_b, r2_b = np.random.rand(2)
+                r1_d, r2_d = np.random.rand(2)
+
+                # A = 2*a*r1 - a
+                # C = 2*r2
+                A1 = 2 * a * r1_a - a
+                C1 = 2 * r2_a
+                A2 = 2 * a * r1_b - a
+                C2 = 2 * r2_b
+                A3 = 2 * a * r1_d - a
+                C3 = 2 * r2_d
+
+                # Calculate D_alpha, D_beta, D_delta (Distances)
+                D_alpha = np.abs(C1 * alpha_pos[j] - positions[i, j])
+                D_beta = np.abs(C2 * beta_pos[j] - positions[i, j])
+                D_delta = np.abs(C3 * delta_pos[j] - positions[i, j])
+
+                # Calculate X1, X2, X3 (Position estimates based on Alpha, Beta, Delta)
+                X1 = alpha_pos[j] - A1 * D_alpha
+                X2 = beta_pos[j] - A2 * D_beta
+                X3 = delta_pos[j] - A3 * D_delta
+
+                # Update the final position of the wolf
+                positions[i, j] = (X1 + X2 + X3) / 3
+        
+            # Ensure the new positions remain within the defined bounds
+            positions[i] = np.clip(positions[i], lower_bound, upper_bound)
+
+
+    # 7. Termination: Return the Alpha wolf's final position and score
+    return alpha_score, alpha_pos
+
+# --- Example Usage ---
+
+# Define a sample objective function (e.g., Sphere function)
+def sphere_function(x):
+    """Sphere function: f(x) = sum(x_i^2). Minimum is 0 at x=[0, 0, ...]"""
+    return np.sum(x**2)
+
+# Define the search space boundaries (3-dimensional problem)
+# e.g., x1, x2, x3 are all in [-10, 10]
+problem_bounds = [(-10, 10), (-10, 10), (-10, 10)]
+
+# Parameters
+N = 30           # Number of wolves
+T = 100          # Maximum iterations
+
+# Run the GWO algorithm
+best_score, best_position = grey_wolf_optimizer(sphere_function, problem_bounds, N, T)
+
+print(f"GWO Optimization Results:")
+print(f"Objective Function: Sphere Function (Minimization)")
+print(f"Best Fitness (Alpha Score): {best_score:.4f}")
+print(f"Best Position (Alpha Position): {best_position}")
