@@ -1,0 +1,89 @@
+# =============================================================
+# Grey Wolf Optimization (GWO) for Feature Selection
+# Application: Bankruptcy Prediction using Financial Ratios
+# =============================================================
+
+import numpy as np
+from sklearn.datasets import make_classification
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
+
+# -------------------------
+# Step 1: Simulate Data
+# -------------------------
+# Suppose we have financial ratios (liquidity, profitability, leverage, solvency)
+X, y = make_classification(n_samples=400, n_features=12, n_informative=6,
+                           n_redundant=2, n_classes=2, random_state=42)
+
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# -------------------------
+# Step 2: Fitness Function
+# -------------------------
+def fitness_function(solution, X, y):
+    # Convert continuous vector into binary (feature selection)
+    mask = solution > 0.5
+    if np.sum(mask) == 0:
+        return 1  # bad fitness if no features selected
+    
+    X_selected = X[:, mask]
+    clf = RandomForestClassifier(n_estimators=50, random_state=42)
+    score = cross_val_score(clf, X_selected, y, cv=5, scoring='accuracy').mean()
+    return 1 - score  # minimize (1 - accuracy)
+
+# -------------------------
+# Step 3: Grey Wolf Optimizer
+# -------------------------
+def GWO(X, y, num_wolves=10, max_iter=20):
+    dim = X.shape[1]
+    wolves = np.random.rand(num_wolves, dim)
+    
+    alpha, beta, delta = np.zeros(dim), np.zeros(dim), np.zeros(dim)
+    alpha_score, beta_score, delta_score = float("inf"), float("inf"), float("inf")
+    
+    for t in range(max_iter):
+        for i in range(num_wolves):
+            fitness = fitness_function(wolves[i], X, y)
+            
+            if fitness < alpha_score:
+                alpha_score, alpha = fitness, wolves[i].copy()
+            elif fitness < beta_score:
+                beta_score, beta = fitness, wolves[i].copy()
+            elif fitness < delta_score:
+                delta_score, delta = fitness, wolves[i].copy()
+        
+        a = 2 - t * (2 / max_iter)  # linearly decreases from 2 to 0
+        
+        for i in range(num_wolves):
+            for j in range(dim):
+                r1, r2 = np.random.rand(), np.random.rand()
+                A1, C1 = 2 * a * r1 - a, 2 * r2
+                D_alpha = abs(C1 * alpha[j] - wolves[i][j])
+                X1 = alpha[j] - A1 * D_alpha
+
+                r1, r2 = np.random.rand(), np.random.rand()
+                A2, C2 = 2 * a * r1 - a, 2 * r2
+                D_beta = abs(C2 * beta[j] - wolves[i][j])
+                X2 = beta[j] - A2 * D_beta
+
+                r1, r2 = np.random.rand(), np.random.rand()
+                A3, C3 = 2 * a * r1 - a, 2 * r2
+                D_delta = abs(C3 * delta[j] - wolves[i][j])
+                X3 = delta[j] - A3 * D_delta
+
+                wolves[i][j] = np.clip((X1 + X2 + X3) / 3, 0, 1)
+
+        print(f"Iteration {t+1}/{max_iter} | Best Accuracy: {1 - alpha_score:.4f}")
+
+    return alpha, (1 - alpha_score)
+
+# -------------------------
+# Step 4: Run GWO
+# -------------------------
+best_solution, best_accuracy = GWO(X, y, num_wolves=12, max_iter=30)
+selected_features = np.where(best_solution > 0.5)[0]
+
+print("\nSelected feature indices:", selected_features)
+print("Best cross-validation accuracy:", round(best_accuracy, 4))
