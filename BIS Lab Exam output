@@ -1,0 +1,38 @@
+
+C:\Users\STUDENT>python gwo_bankruptcy.py
+Iteration 1/30 | Best Accuracy: 0.8850
+Iteration 2/30 | Best Accuracy: 0.8900
+Iteration 3/30 | Best Accuracy: 0.8900
+Iteration 4/30 | Best Accuracy: 0.8900
+Iteration 5/30 | Best Accuracy: 0.8950
+Iteration 6/30 | Best Accuracy: 0.8950
+Iteration 7/30 | Best Accuracy: 0.8950
+Iteration 8/30 | Best Accuracy: 0.8950
+Iteration 9/30 | Best Accuracy: 0.9000
+Iteration 10/30 | Best Accuracy: 0.9000
+Iteration 11/30 | Best Accuracy: 0.9000
+Iteration 12/30 | Best Accuracy: 0.9000
+Iteration 13/30 | Best Accuracy: 0.9000
+Iteration 14/30 | Best Accuracy: 0.9000
+Iteration 15/30 | Best Accuracy: 0.9000
+Iteration 16/30 | Best Accuracy: 0.9000
+Iteration 17/30 | Best Accuracy: 0.9000
+Iteration 18/30 | Best Accuracy: 0.9000
+Iteration 19/30 | Best Accuracy: 0.9000
+Iteration 20/30 | Best Accuracy: 0.9000
+Iteration 21/30 | Best Accuracy: 0.9000
+Iteration 22/30 | Best Accuracy: 0.9000
+Iteration 23/30 | Best Accuracy: 0.9000
+Iteration 24/30 | Best Accuracy: 0.9000
+Iteration 25/30 | Best Accuracy: 0.9000
+Iteration 26/30 | Best Accuracy: 0.9000
+Iteration 27/30 | Best Accuracy: 0.9000
+Iteration 28/30 | Best Accuracy: 0.9000
+Iteration 29/30 | Best Accuracy: 0.9000
+Iteration 30/30 | Best Accuracy: 0.9000
+
+Selected feature indices: [ 0  3  4  5 10 11]
+Best cross-validation accuracy: 0.9
+
+C:\Users\STUDENT>
+C:\Users\STUDENT>^A
