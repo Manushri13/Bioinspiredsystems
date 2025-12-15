@@ -1,0 +1,73 @@
+import random
+
+# Objective function (Sphere Function)
+def objective_function(position):
+    return sum(x ** 2 for x in position)
+
+# Particle class
+class Particle:
+    def __init__(self, dim, min_val, max_val):
+        self.position = [random.uniform(min_val, max_val) for _ in range(dim)]
+        self.velocity = [random.uniform(-1, 1) for _ in range(dim)]
+        self.best_position = list(self.position)
+        self.best_value = objective_function(self.position)
+
+# PSO Algorithm
+def particle_swarm_optimization():
+    dim = 2                  # Number of dimensions
+    num_particles = 5        # Number of particles
+    iterations = 10          # Number of iterations
+    min_val, max_val = -10, 10
+
+    w = 0.5    # Inertia weight
+    c1 = 1.5   # Cognitive coefficient
+    c2 = 1.5   # Social coefficient
+
+    swarm = [Particle(dim, min_val, max_val) for _ in range(num_particles)]
+
+    global_best_position = swarm[0].best_position
+    global_best_value = swarm[0].best_value
+
+    print("\n--- PARTICLE SWARM OPTIMIZATION ---\n")
+
+    for iteration in range(iterations):
+        print(f"Iteration {iteration + 1}")
+
+        for i, particle in enumerate(swarm):
+            value = objective_function(particle.position)
+
+            # Update personal best
+            if value < particle.best_value:
+                particle.best_value = value
+                particle.best_position = list(particle.position)
+
+            # Update global best
+            if value < global_best_value:
+                global_best_value = value
+                global_best_position = list(particle.position)
+
+            print(f" Particle {i+1}: Position = {particle.position}, Value = {value}")
+
+        print(f" Best Value so far = {global_best_value}")
+        print("-" * 50)
+
+        # Update velocity and position
+        for particle in swarm:
+            for d in range(dim):
+                r1 = random.random()
+                r2 = random.random()
+
+                cognitive = c1 * r1 * (particle.best_position[d] - particle.position[d])
+                social = c2 * r2 * (global_best_position[d] - particle.position[d])
+
+                particle.velocity[d] = w * particle.velocity[d] + cognitive + social
+                particle.position[d] += particle.velocity[d]
+
+    print("\n--- FINAL RESULT ---")
+    print("Best Position:", global_best_position)
+    print("Best Value:", global_best_value)
+
+
+# Run PSO
+if __name__ == "__main__":
+    particle_swarm_optimization()
